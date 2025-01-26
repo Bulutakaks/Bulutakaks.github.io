@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Selma'nın doğum günü kutlaması için özel bir sayfa.">
+    <meta name="keywords" content="doğum günü, Selma, kutlama, kehanetler">
+    <meta name="author" content="Bulut Akarslan">
+    <title>Selma'nın Doğum Gününe Kalan Zaman</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #ffcccc, #ffe6e6);
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+        #countdown { font-size: 2em; margin-top: 20px; }
+        #birthdayMessage { display: none; }
+        .creator {
+            position: absolute;
+            top: 10px; /* Yukarı kaldırıldı */
+            right: 10px;
+            opacity: 0.7;
+        }
+        #letter {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white; /* Arka plan beyaz */
+            color: black; /* Yazı rengi siyah */
+            border-radius: 15px;
+            padding: 20px;
+            z-index: 100;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            opacity: 1; /* Başlangıçta görünür */
+        }
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+        }
+        .heart {
+            position: absolute;
+            color: red;
+            font-size: 24px;
+            animation: fall 3s linear infinite;
+        }
+        @keyframes fall {
+            from {
+                top: -10%;
+                opacity: 1;
+            }
+            to {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 1s forwards;
+        }
+        .social-buttons {
+            margin-top: 20px;
+        }
+        .social-buttons a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: white;
+            background-color: #007bff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .social-buttons img {
+            width: 20px; /* Logo boyutu */
+            margin-right: 5px; /* Logo ile metin arasında boşluk */
+        }
+        #game {
+            margin-top: 20px;
+        }
+        #eventMessage {
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        #waitingMessage {
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: red;
+        }
+        #totalCount {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        #mostFrequentEvent {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .instagram-link {
+            position: absolute;
+            bottom: 80px; /* Sağ alt köşe */
+            right: 20px;
+            text-decoration: none;
+            color: white;
+            background-color: #007bff;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Selma'nın Doğum Gününe Kalan Zaman</h1>
+    <div id="countdown"></div>
+    <div id="birthdayMessage" class="fade-in">
+        <h2>İyi ki doğdun Selma!</h2>
+    </div>
+    <div class="creator">Yapımcı: Bulut Akarslan</div>
+
+    <div id="overlay"></div>
+    <div id="letter">
+        <p>İyi ki doğdun Selma, nice senelere! Yeni yılın uğur getirsin.</p>
+        <button onclick="closeLetter()">Kapat</button>
+    </div>
+
+    <audio id="birthdaySong" src="your-birthday-song.mp3" autoplay loop></audio>
+
+    <div id="game">
+        <button id="eventButton">Yeni Yaşında Neler Olacak?</button>
+        <div id="eventMessage"></div>
+        <div id="waitingMessage"></div>
+    </div>
+
+    <div id="totalCount">Toplam Olay Sayısı: <span id="count">0</span></div>
+    <div id="mostFrequentEvent">En Çok Çıkan Kehanet: <span id="frequentEvent"></span></div>
+
+    <div class="social-buttons" id="socialButtons" style="display: block;">
+        <a href="https://www.facebook.com/sharer/sharer.php?u=YOUR_URL" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook Logo"> Facebook'ta Paylaş
+        </a>
+        <a href="https://twitter.com/intent/tweet?url=YOUR_URL" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/en/6/60/Twitter_bird_logo_2012.svg" alt="Twitter Logo"> Twitter'da Paylaş
+        </a>
+        <a href="https://www.instagram.com/" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram Logo"> Instagram'da Paylaş
+        </a>
+    </div>
+
+    <div class="instagram-link">
+        <a href="https://www.instagram.com/bulutakarslan?utm_source=qr&igsh=b3ZkaDQ1amNoYXo5" target="_blank">Instagram Profilim</a>
+    </div>
+
+    <script>
+        const birthday = new Date("2025-01-27T00:00:00").getTime();
+        const countdownElement = document.getElementById("countdown");
+        const birthdayMessage = document.getElementById("birthdayMessage");
+        const letter = document.getElementById("letter");
+        const overlay = document.getElementById("overlay");
+        const eventButton = document.getElementById("eventButton");
+        const eventMessage = document.getElementById("eventMessage");
+        const waitingMessage = document.getElementById("waitingMessage");
+        const totalCountElement = document.getElementById("count");
+        const frequentEventElement = document.getElementById("frequentEvent");
+
+        // Sayacı localStorage'dan al
+        let eventCount = localStorage.getItem('eventCount') ? parseInt(localStorage.getItem('eventCount')) : 0;
+        totalCountElement.innerText = eventCount; // Başlangıçta göster
+
+        // En çok çıkan kehanet
+        let eventsFrequency = {};
+        let mostFrequentEvent = localStorage.getItem('mostFrequentEvent') || '';
+        frequentEventElement.innerText = mostFrequentEvent;
+
+        const events = [
+            "Yeni yaşında dünya turuna çıkıyorsun!",
+            "Yeni bir hobi edinip resim yapmaya başlıyorsun.",
+            "Bir kedi sahipleniyorsun.",
+            "En sevdiğin şarkıcıyla tanışıyorsun!",
+            "Yaz tatilinde plaja gidiyorsun.",
+            "Yeni bir arkadaş ediniyorsun.",
+            "Büyük bir yarışmaya katılıyorsun.",
+            "Hayallerindeki arabayı alıyorsun.",
+            "Kendi işini kuruyorsun!",
+            "Bir konseri izlemek için yurt dışına gidiyorsun.",
+            "FETÖ'den içeri atılacaksın, dikkat et!",
+            "Kahve içmek için kütüphaneye gideceksin.",
+            "Yaz tatilinde yeni bir kitap yazıyorsun.",
+            "Bir hayvan barınağında gönüllü olacaksın.",
+            "Yeni bir dil öğrenmeye karar veriyorsun.",
+            "Bir arkadaşınla yurt dışına seyahat ediyorsun.",
+            "Kendi blogunu açıyorsun.",
+            "Bir yarışmada ödül kazanıyorsun.",
+            "Yıl sonunda büyük bir parti düzenliyorsun.",
+            "Eski bir arkadaşınla buluşuyorsun.",
+            "Yeni bir müzik aleti çalmaya başlıyorsun.",
+            "Bir filmde rol alıyorsun.",
+            "Yemek kursuna katılıyorsun.",
+            "Gönüllü olarak bir sosyal projeye katılıyorsun.",
+            "Bir spor dalında başarı kazanıyorsun.",
+            "Yazın bir festivale katılıyorsun.",
+            "Bir sanat sergisine gidiyorsun.",
+            "Kendi işini kurmak için ilk adımı atıyorsun.",
+            "Yıl sonuna kadar 10 yeni kitap okuyorsun.",
+            "Yeni bir arkadaş grubuna katılıyorsun.",
+            "Gelecek yıl için büyük hayaller kuruyorsun.",
+            "Bir podcast başlatıyorsun.",
+            "Düzenli spor yapmaya başlıyorsun.",
+            "Bir hayvanı kurtarıyorsun.",
+            "Bir gün boyunca hiç konuşmamaya karar veriyorsun.",
+            "Bir bağış kampanyası düzenliyorsun.",
+            "Kendi yemek tariflerini paylaşmaya başlıyorsun.",
+            "Bir tatil köyünde çalışmaya başlıyorsun.",
+            "Yeni bir iş teklifi alıyorsun.",
+            "Bir arkadaşınla birlikte seyahate çıkıyorsun.",
+            "Bir gönüllü kuruluşunda aktif oluyorsun.",
+            "Bir müzik festivaline katılıyorsun.",
+            "Bir tiyatro oyununda sahne alıyorsun.",
+            "Bir dergiye yazı yazıyorsun.",
+            "Bir aile üyesinin doğum gününü kutluyorsun.",
+            "Bir spor takımına katılıyorsun.",
+            "Yeni bir uygulama geliştiriyorsun.",
+            "Bir sosyal medya fenomeni oluyorsun.",
+            "Bir iş fırsatı için yurt dışına gidiyorsun.",
+            "Bir arkadaşınla birlikte yeni bir hobi ediniyorsun.",
+            "Bir fotoğraf sergisi açıyorsun.",
+            "Bir müzik grubuna katılıyorsun.",
+            "Bir hayvanı sahipleniyorsun.",
+            "Bir sanat eserine imza atıyorsun.",
+            "Bir film festivali düzenliyorsun.",
+            "Bir çevre projesine katılıyorsun.",
+            "Bir arkadaşınla birlikte yeni bir iş kuruyorsun.",
+            "Bir bilim projesinde yer alıyorsun.",
+            "Bir yaz kampına katılıyorsun.",
+            "Bir sosyal medya hesabı açıyorsun.",
+            "Bir yazı yarışmasında ödül kazanıyorsun.",
+            "Bir konser organizasyonunda görev alıyorsun.",
+            "Ağlayarak bir yıl geçireceksin.",
+            "Bulutla küsüp, üzgünüm Türkiye'ye döneceksin.",
+            "Arkadaşlarınla huzurevine gideceksin.",
+            "Arkadaşların Bulutla kavga edecek.",
+            "Sigma Sigma Boy şarkısını dinlerken, gülmekten çenen ağrıyacak.",
+            "Gece korkunç rüya göreceksin.",
+            "Böööö.",
+            "100 Euro kazanacaksın."
+        ];
+
+        const hearts = 100; // Kalp sayısını iki katına çıkardık
+        let fallingHearts = [];
+
+        const interval = setInterval(() => {
+            const now = new Date().getTime();
+            const distance = birthday - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            countdownElement.innerHTML = `${days}g ${hours}s ${minutes}d ${seconds}s`;
+
+            if (distance < 0) {
+                clearInterval(interval);
+                countdownElement.style.display = "none";
+                
+                birthdayMessage.style.display = "block";
+                birthdayMessage.classList.add("fade-in");
+                
+                overlay.style.display = "block";
+                letter.style.display = "block";
+
+                for (let i = 0; i < hearts; i++) {
+                    createHeart();
+                }
+            }
+        }, 1000);
+
+        function createHeart() {
+            const heart = document.createElement("div");
+            heart.className = "heart";
+            heart.innerHTML = "❤️";
+            heart.style.left = Math.random() * 100 + "vw";
+            heart.style.animationDuration = Math.random() * 2 + 3 + "s";
+            document.body.appendChild(heart);
+            fallingHearts.push(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, 5000);
+        }
+
+        function closeLetter() {
+            letter.style.display = "none";
+            overlay.style.display = "none";
+
+            fallingHearts.forEach(heart => heart.remove());
+            fallingHearts = [];
+        }
+
+        eventButton.addEventListener("click", () => {
+            waitingMessage.innerText = "Boş bir seçim yapılıyor...";
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * events.length);
+                const randomEvent = events[randomIndex];
+                eventMessage.innerText = randomEvent;
+                eventCount++; // Olay sayısını artır
+                totalCountElement.innerText = eventCount; // Olay sayısını güncelle
+                localStorage.setItem('eventCount', eventCount); // Sayacı localStorage'da sakla
+
+                // Olayın frekansını güncelle
+                eventsFrequency[randomEvent] = (eventsFrequency[randomEvent] || 0) + 1;
+
+                // En çok çıkan kehaneti bul
+                mostFrequentEvent = Object.keys(eventsFrequency).reduce((a, b) => eventsFrequency[a] > eventsFrequency[b] ? a : b, '');
+                frequentEventElement.innerText = mostFrequentEvent; // En çok çıkan kehaneti göster
+                localStorage.setItem('mostFrequentEvent', mostFrequentEvent); // En çok çıkan kehaneti localStorage'da sakla
+
+                waitingMessage.innerText = "5 saniye bekleniyor...";
+                setTimeout(() => {
+                    waitingMessage.innerText = "";
+                }, 5000);
+            }, 2000); // 2 saniye bekle
+        });
+    </script>
+</body>
+</html>
